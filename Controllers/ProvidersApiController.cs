@@ -83,5 +83,11 @@ namespace ProdmasterProvidersApi.Controllers
             //    return BadRequest("Failed to load provider");
             //}
         }
+        [HttpGet("provider")]
+        public async Task<IActionResult> LoadProviders()
+        {
+            await _updateProvidersService.LoadProviders();
+            return Ok();
+        }
     }
 }
