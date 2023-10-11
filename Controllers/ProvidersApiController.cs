@@ -42,9 +42,9 @@ namespace ProdmasterProvidersApi.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [HttpPatch("specificationsToVerify")]
-        public async Task<IActionResult> GetSpecificationsSuccess([FromBody]List<long> specificationIds)
+        public async Task<IActionResult> GetSpecificationsSuccess([FromBody]List<ConfirmSpecificationApiModel> specs)
         {
-            if (!await _specificationService.SuccessSendingSpecifications(specificationIds))
+            if (!await _specificationService.ConfirmSendingSpecifications(specs))
                 return BadRequest("Error");
             return Ok();
         }
