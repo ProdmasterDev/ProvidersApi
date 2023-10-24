@@ -17,12 +17,14 @@ namespace ProdmasterProvidersApi.Controllers
         private readonly ILogger<ProvidersApiController> _logger;
         private readonly ISpecificationApiService _specificationService;
         private readonly IUpdateProvidersService _updateProvidersService;
+        private readonly IOrderService _orderService;
 
-        public ProvidersApiController(ILogger<ProvidersApiController> logger, ISpecificationApiService specificationService, IUpdateProvidersService updateProvidersService)
+        public ProvidersApiController(ILogger<ProvidersApiController> logger, ISpecificationApiService specificationService, IUpdateProvidersService updateProvidersService, IOrderService orderService)
         {
             _logger = logger;
             _specificationService = specificationService;
             _updateProvidersService = updateProvidersService;
+            _orderService = orderService;
         }
         /// <summary>
         /// Get new specifications
@@ -72,22 +74,45 @@ namespace ProdmasterProvidersApi.Controllers
         {
                 await _updateProvidersService.LoadProvider(customId, password);
                 return Ok();
-            //try
-            //{
-            //    await _updateProvidersService.LoadProvider(customId);
-            //    return Ok();
-            //}
-            //catch
-            //{
-            //    _logger.LogError("Failed to load provider");
-            //    return BadRequest("Failed to load provider");
-            //}
         }
         [HttpGet("provider")]
         public async Task<IActionResult> LoadProviders()
         {
             await _updateProvidersService.LoadProviders();
             return Ok();
+        }
+        [HttpPost("createorder")]
+        public async Task<OrderApiResponseModel?> CreateOrder([FromBody] OrderApiModel order)
+        {
+            var createdOrder = await _orderService.CreateOrRecreateOrder(order);
+            if (createdOrder.Id == default)
+            {
+                return new OrderApiResponseModel();
+            }
+            else
+            {
+                return new OrderApiResponseModel(createdOrder);
+            }
+        }
+        [HttpPost("getordersforuser")]
+        public async Task<List<Order>> GetOrdersForUser(long userId)
+        {
+            return await _orderService.GetOrdersForUser(userId);
+        }
+        [HttpPost("getorders")]
+        public async Task<List<OrderApiModel>> GetOrders()
+        {
+            return await _orderService.GetConfirmedOrDeclinedOrders();
+        }
+        [HttpPost("approveorders")]
+        public async Task ApproveOrders([FromBody] List<OrderApiModel> orders)
+        {
+            await _orderService.ConfirmConfirmedOrDeclinedOrders(orders);
+        }
+        [HttpPost("declineorder")]
+        public async Task DeclineOrder([FromBody] OrderApiModel order)
+        {
+            await _orderService.DeclineOrderByRecipient(order);
         }
     }
 }
